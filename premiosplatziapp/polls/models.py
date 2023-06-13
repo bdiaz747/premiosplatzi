@@ -12,7 +12,7 @@ class Question(models.Model):
     
     def was_published_recently(self):
     # Verifica si la fecha de publicación es reciente con un día atras a la fecha actual
-        return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
+        return timezone.now() >= self.pub_date >= timezone.now() - datetime.timedelta(days=1)
 
         
 
