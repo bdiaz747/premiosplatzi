@@ -1,7 +1,7 @@
 import datetime
 
 from django.test import TestCase
-from django.urls.base import reverse
+from django.urls.base import reverse                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
 from django.utils import timezone
 
 from .models import Question
@@ -30,7 +30,7 @@ class QuestionModelTests(TestCase):
         # Prueba para verificar el comportamiento de was_published_recently con una pregunta actual 
         # Obtener la fecha y hora actual
         time = timezone.now()        
-        # Crear una pregunta actual con el texto "¿Estás disfrutando del clima hoy?" y la fecha actual
+        # Crear una pregunta actual con el texto "¿Es                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           tás disfrutando del clima hoy?" y la fecha actual
         current_question = Question(question_test="¿Estás disfrutando del clima hoy?", pub_date=time)        
         # Verificar que la pregunta haya sido publicada recientemente
         self.assertIs(current_question.was_published_recently(), True)
@@ -88,5 +88,37 @@ class QuestionIndexViewTests(TestCase):
         # Verify that the latest_question_list in the response's context contains the expected question
         # Verificar que latest_question_list en el contexto de la respuesta contiene la pregunta esperada
         self.assertQuerysetEqual(response.context["latest_question_list"], [question])
+        
+    def test_future_question_and_past_question(self):
+        """
+        Even if boot pass and future question exist, onli past questions are displayed 
+        """
+        past_question = create_question(question_test="Past question", days=-30)
+        future_question = create_question(question_test="Past question", days=30)
+        response = self.client.get(reverse("polls:index"))
+        self.assertQuerysetEqual(
+            response.context["latest_question_list"], [past_question])   
+         
+    def test_two_past_questions(self):
+        """_
+        The questioms index page my display multiple questions.
+        """
+        past_question1 = create_question(question_test="Past question 1", days=-30)
+        past_question2 = create_question(question_test="Past question 2", days=-40)
+        response = self.client.get(reverse("polls:index"))
+        self.assertQuerysetEqual(
+            response.context["latest_question_list"], [past_question1, past_question2]
+        )
+    
+    def test_two_future_questions(self):
+        """_
+        The questioms index page my display multiple questions.
+        """
+        future_question1 = create_question(question_test="Future question 1", days=30)
+        future_question2 = create_question(question_test="Future question 2", days=40)
+        response = self.client.get(reverse("polls:index"))
+        self.assertQuerysetEqual(
+            response.context["latest_question_list"], []
+        )   
 
         
