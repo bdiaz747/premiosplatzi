@@ -37,6 +37,12 @@ class IndexView(generic.ListView):
 class DetailView(generic.DetailView):
     model = Question  # Modelo utilizado para la vista
     template_name = "polls/detail.html"  # Plantilla utilizada para renderizar la vista de detalle
+    
+    def get_queryset(self):
+        """
+        Exludes any quiestion that arent publishet yet
+        """
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
 class ResultsView(generic.DetailView):
     model = Question  # Modelo utilizado para la vista

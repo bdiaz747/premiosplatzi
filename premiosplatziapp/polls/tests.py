@@ -119,6 +119,51 @@ class QuestionIndexViewTests(TestCase):
         response = self.client.get(reverse("polls:index"))
         self.assertQuerysetEqual(
             response.context["latest_question_list"], []
-        )   
+        )
 
+class QuestionDetailViewTest(TestCase):
+    def test_future_question(self):
+        """
+        The datail wiew of a question with a pub_date in the future
+        return a 404 (error no fount)
+        """
+        """
+        La vista de detalle de una pregunta con una fecha de publicación en el futuro
+        debe devolver un error 404 (página no encontrada)
+        """
+
+        # Create a new question with the question_text set to "Future question" and the pub_date set to the future date
+        # Crear una nueva pregunta con el texto de la pregunta establecido en "Future question" y la fecha de publicación establecida en la fecha futura
+        future_question = create_question(question_test="Future question 1", days=30)
+        # Get the URL for the question detail view using the reverse function and the question's ID
+        # Obtener la URL para la vista de detalle de la pregunta utilizando la función reverse y el ID de la pregunta
+        url = reverse("polls:detail", args=(future_question.id,))
+        # Send a GET request to the URL using the test client
+        # Enviar una solicitud GET a la URL utilizando el cliente de pruebas (test client)
+        response = self.client.get(url)
+        # Assert that the response status code is 404, indicating a page not found error
+        # Verificar que el código de estado de la respuesta sea 404, lo que indica un error de página no encontrada
+        self.assertEqual(response.status_code, 404)
+    
+    def test_past_question(self):
+        """
+        The datail wiew of a question with a pub_date in the past
+        displays yhe quiestion a text
+        """
+        """
+        La vista de detalle de una pregunta con una pub_date en el pasado
+        muestra el texto de la pregunta
+        """
         
+        # Creates a past question with the specified test and a negative time delta of 30 days.
+        # Crea una pregunta pasada con el texto especificado y un desfase de tiempo negativo de 30 días.
+        past_question = create_question(question_test="Past question 1", days=-30)
+        # Generates the URL for the detail view of the past question using its ID.
+        # Genera la URL para la vista de detalle de la pregunta pasada utilizando su ID.
+        url = reverse("polls:detail", args=(past_question.id,))
+        # Sends a GET request to the generated URL using the test client.
+        # Envía una solicitud GET a la URL generada utilizando el cliente de pruebas.
+        response = self.client.get(url) 
+        # Asserts that the response contains the text of the past question's test.
+        # Asegura que la respuesta contenga el texto de la pregunta pasada.       
+        self.assertContains(response, past_question.question_test) 
