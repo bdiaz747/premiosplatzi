@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls.base import reverse                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
 from django.utils import timezone
 
-from .models import Question
+from .models import Question, Choice
 
 class QuestionModelTests(TestCase):
 
@@ -167,3 +167,40 @@ class QuestionDetailViewTest(TestCase):
         # Asserts that the response contains the text of the past question's test.
         # Asegura que la respuesta contenga el texto de la pregunta pasada.       
         self.assertContains(response, past_question.question_test) 
+        
+def create_question(question_test, days):
+    time = timezone.now() + datetime.timedelta(days=days)
+    return Question.objects.create(question_test=question_test, pub_date=time)
+
+class QuestionResultsViewTests(TestCase):
+    def test_question_not_exists(self):
+        """Si el ID de la pregunta no existe, se debe obtener un código 404"""
+        response = self.client.get(reverse("polls:results", kwargs={'pk': 1}))
+        self.assertEqual(response.status_code, 404)
+
+    def test_future_question(self):
+        """Si es una pregunta del futuro, se debe obtener un código 404"""
+        future_question = create_question("Pregunta futura", 30)
+        response = self.client.get(reverse("polls:results", kwargs={'pk': future_question.pk}))
+        self.assertEqual(response.status_code, 404)
+
+    def test_past_question(self):
+        """Si es una pregunta del pasado, se debe poder mostrar"""
+        past_question = create_question("Pregunta pasada", -10)
+        response = self.client.get(reverse("polls:results", kwargs={'pk': past_question.pk}))
+        self.assertContains(response, past_question.question_test)
+
+    def test_display_question_choices_and_votes(self):
+        """La página debe mostrar los votos para cada opción de una pregunta"""
+        question = create_question("Pregunta", -1)
+        choice1 = Choice(choice_test="Opción 1", questions_id=question.id)
+        choice1.save()
+
+        choice2 = Choice(choice_test="Opción 2", questions_id=question.id)
+        choice2.save()
+
+        response = self.client.get(reverse("polls:results", kwargs={'pk': question.id}))
+
+        self.assertContains(response, question.question_test)
+        self.assertContains(response, choice1.choice_test + ' -- ' + str(choice1.votes) + ' vote')
+        self.assertContains(response, choice2.choice_test + ' -- ' + str(choice2.votes) + ' votes')
