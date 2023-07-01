@@ -47,7 +47,12 @@ class DetailView(generic.DetailView):
 class ResultsView(generic.DetailView):
     model = Question  # Modelo utilizado para la vista
     template_name = "polls/results.html"  # Plantilla utilizada para renderizar la vista de resultados
-
+    
+    def get_queryset(self):
+        """
+        Exludes any quiestion that arent publishet yet
+        """
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
