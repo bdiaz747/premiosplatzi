@@ -8,8 +8,10 @@ class ChoiceInLine(admin.StackedInline):
 
 class QuestionAdmin(admin.ModelAdmin):
     fields = ["pub_date", "question_test"]
-    inlines = [ChoiceInLine] 
-    
+    inlines = [ChoiceInLine]
+    list_display = ("question_test", "pub_date","was_published_recently")
+    list_filter = ["pub_date"]
+    search_fields = ["question_test"]
 
 
 admin.site.register(Question,QuestionAdmin)
